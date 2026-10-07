@@ -6,11 +6,13 @@ class Snake:
         # body is a list of (x, y) grid-cell positions, head is body[0]
         self.body = [(x, y), (x - 1, y), (x - 2, y)]
         self.direction = (1, 0)  # moving right
+        self.last_direction = (1, 0)  # tracks direction of the last executed step
         self.grow_pending = False
 
     def set_direction(self, dx, dy):
-        # NOTE: does not currently guard against reversing directly
-        # into the segment behind the head.
+        # Prevent 180-degree immediate reversal relative to last actual movement
+        if (dx, dy) == (-self.last_direction[0], -self.last_direction[1]):
+            return
         self.direction = (dx, dy)
 
     def move(self):
@@ -19,6 +21,8 @@ class Snake:
         new_head = (head_x + dx, head_y + dy)
 
         self.body.insert(0, new_head)
+        self.last_direction = self.direction
+
         if self.grow_pending:
             self.grow_pending = False
         else:
