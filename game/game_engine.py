@@ -7,6 +7,8 @@ from .food import Food
 WHITE = (255, 255, 255)
 GREEN = (0, 200, 0)
 RED = (220, 60, 60)
+BLACK = (0, 0, 0)
+GRAY = (50, 50, 50)
 
 class GameEngine:
     def __init__(self, width, height):
@@ -21,14 +23,19 @@ class GameEngine:
 
         self.score = 0
         self.font = pygame.font.SysFont("Arial", 30)
+        self.large_font = pygame.font.SysFont("Arial", 50, bold=True)
+        self.small_font = pygame.font.SysFont("Arial", 20)
 
         self.moves_per_second = 8
         self._frame_counter = 0
 
         self.game_over = False
-        self._game_over_logged = False
 
     def handle_keydown(self, key):
+        if self.game_over:
+            # Gracefully handle input while on game over screen
+            return
+
         # Direction changes are applied immediately on key press.
         if key in (pygame.K_UP, pygame.K_w):
             self.snake.set_direction(0, -1)
@@ -40,8 +47,7 @@ class GameEngine:
             self.snake.set_direction(1, 0)
 
     def handle_input(self):
-        # Reserved for continuously-held-key input (not used for a
-        # grid-based snake, but kept here to mirror the engine's shape).
+        # Reserved for continuously-held-key input
         pass
 
     def update(self):
@@ -81,7 +87,25 @@ class GameEngine:
         score_text = self.font.render(f"Score: {self.score}", True, WHITE)
         screen.blit(score_text, (10, 10))
 
-        if self.game_over and not self._game_over_logged:
-            # NOTE: no proper game-over screen yet - see Task 2 in the README.
-            print("Game over! Final score:", self.score)
-            self._game_over_logged = True
+        # Render Game Over Overlay
+        if self.game_over:
+            # Semi-transparent dark overlay background
+            overlay = pygame.Surface((self.width, self.height))
+            overlay.set_alpha(200)
+            overlay.fill(BLACK)
+            screen.blit(overlay, (0, 0))
+
+            # Game Over Heading
+            game_over_surface = self.large_font.render("GAME OVER", True, RED)
+            go_rect = game_over_surface.get_rect(center=(self.width // 2, self.height // 2 - 50))
+            screen.blit(game_over_surface, go_rect)
+
+            # Final Score
+            final_score_surface = self.font.render(f"Final Score: {self.score}", True, WHITE)
+            score_rect = final_score_surface.get_rect(center=(self.width // 2, self.height // 2 + 10))
+            screen.blit(final_score_surface, score_rect)
+
+            # Prompt Instruction
+            prompt_surface = self.small_font.render("Press ANY KEY to Exit", True, WHITE)
+            prompt_rect = prompt_surface.get_rect(center=(self.width // 2, self.height // 2 + 60))
+            screen.blit(prompt_surface, prompt_rect)
